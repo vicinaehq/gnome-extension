@@ -3,15 +3,6 @@ import type Meta from "gi://Meta";
 import { logger } from "../../utils/logger.js";
 import { isTargetWindow } from "../../utils/window-utils.js";
 
-declare const global: {
-    display: Meta.Display;
-    window_manager: {
-        connectObject: (...args: unknown[]) => void;
-        disconnectObject: (...args: unknown[]) => void;
-    };
-    get_window_actors: () => Meta.WindowActor[];
-};
-
 export class WindowTracker {
     private trackedWindows = new Set<number>();
     private isDestroying = false;

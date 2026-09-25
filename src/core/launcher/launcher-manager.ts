@@ -1,6 +1,5 @@
 import type Gio from "gi://Gio";
 import GLib from "gi://GLib";
-import type Meta from "gi://Meta";
 import { logger } from "../../utils/logger.js";
 import { isTargetWindow } from "../../utils/window-utils.js";
 import type { WindowsService } from "../dbus/services/windows-service.js";
@@ -8,10 +7,6 @@ import { VicinaeWindowManager } from "../windows/window-manager.js";
 import { ClickHandler } from "./click-handler.js";
 import { FocusTracker } from "./focus-tracker.js";
 import { WindowTracker } from "./window-tracker.js";
-
-declare const global: {
-    display: Meta.Display;
-};
 
 export interface LauncherConfig {
     /** Application class name to monitor */

@@ -3,12 +3,6 @@ import type Meta from "gi://Meta";
 import { logger } from "../../utils/logger.js";
 import { isTargetWindow } from "../../utils/window-utils.js";
 
-declare const global: {
-    stage: Clutter.Stage;
-    get_pointer: () => [number, number];
-    get_window_actors: () => Meta.WindowActor[];
-};
-
 export class ClickHandler {
     constructor(
         private appClass: string,

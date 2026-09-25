@@ -1,9 +1,7 @@
 import Gio from "gi://Gio";
 
-// Define a proper interface for D-Bus service objects
-export interface DBusServiceObject {
-    [key: string]: (...args: unknown[]) => unknown;
-}
+// Define a proper type for D-Bus service objects
+export type DBusServiceObject = object;
 
 export const createDBusService = (
     interfaceDefinition: string,

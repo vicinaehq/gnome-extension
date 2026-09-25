@@ -48,17 +48,20 @@ export const getFocusedWindowApp = () => {
     return "gnome-shell";
 };
 
+interface LegacyMetaWindow extends Meta.Window {
+    get_maximized?(): number;
+}
+
 /**
  * Starting from GNOME 49, the method is_maximized() is available on the Window object.
  * For older versions, we use get_maximized() instead.
  */
-export const isMaximized = (win: Meta.Window) => {
-    if (win.is_maximized !== undefined) {
+export const isMaximized = (win: Meta.Window): boolean | number => {
+    if (typeof win.is_maximized === "function") {
         return win.is_maximized();
     }
 
-    // @ts-expect-error - get_maximized is not in the type definitions for GNOME 49+
-    return win.get_maximized();
+    return (win as LegacyMetaWindow).get_maximized?.() ?? 0;
 };
 
 /**

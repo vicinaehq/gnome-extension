@@ -8,6 +8,14 @@ declare global {
     const __VICINAE_ENV_SUFFIX__: string;
 }
 
+declare module "@girs/shell-18" {
+    namespace Shell {
+        interface Global {
+            display: import("@girs/meta-18").Meta.Display;
+        }
+    }
+}
+
 declare module "@girs/gobject-2.0" {
     namespace GObject {
         interface Object {

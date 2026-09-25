@@ -1,7 +1,7 @@
 import Adw from "gi://Adw";
 import Gio from "gi://Gio";
 import GObject from "gi://GObject";
-import type { ClipboardPageChildren } from "../types/prefs.js";
+import type Gtk from "gi://Gtk";
 import { getTemplate } from "../utils/getTemplate.js";
 import { logger } from "../utils/logger.js";
 import {
@@ -24,6 +24,11 @@ export const ClipboardPage = GObject.registerClass(
         private settings!: Gio.Settings;
         private rowInstances: Set<BlockedAppRowInstance> = new Set();
 
+        declare _enableClipboardMonitoring: Adw.SwitchRow;
+        declare _blockedAppsGroup: Adw.ExpanderRow;
+        declare _emptyPlaceholderRow: Adw.ActionRow;
+        declare _addWindowButton: Gtk.Button;
+
         bindSettings(settings: Gio.Settings) {
             this.settings = settings;
             logger.debug("Settings bound to ClipboardPage");
@@ -31,27 +36,22 @@ export const ClipboardPage = GObject.registerClass(
             this.loadBlockedApplications();
             this.updateAddButtonState();
 
-            const children = this as unknown as ClipboardPageChildren;
-
-            this.connectAddBlockedAppButton(children);
-            this.bindEnableClipboardMonitoring(settings, children);
+            this.connectAddBlockedAppButton();
+            this.bindEnableClipboardMonitoring(settings);
         }
 
         /** "Add window class" → append an empty blocked-app row. */
-        private connectAddBlockedAppButton(children: ClipboardPageChildren) {
-            children._addWindowButton.connect("clicked", () => {
+        private connectAddBlockedAppButton() {
+            this._addWindowButton.connect("clicked", () => {
                 this.addEmptyBlockedAppRow();
             });
         }
 
         /** `enable-clipboard-monitoring` ↔ clipboard monitoring switch. */
-        private bindEnableClipboardMonitoring(
-            settings: Gio.Settings,
-            children: ClipboardPageChildren,
-        ) {
+        private bindEnableClipboardMonitoring(settings: Gio.Settings) {
             settings.bind(
                 "enable-clipboard-monitoring",
-                children._enableClipboardMonitoring,
+                this._enableClipboardMonitoring,
                 "active",
                 Gio.SettingsBindFlags.DEFAULT,
             );
@@ -61,7 +61,7 @@ export const ClipboardPage = GObject.registerClass(
                 const isEnabled = settings.get_boolean(
                     "enable-clipboard-monitoring",
                 );
-                children._blockedAppsGroup.set_sensitive(isEnabled);
+                this._blockedAppsGroup.set_sensitive(isEnabled);
             };
 
             settings.connect(
@@ -85,9 +85,8 @@ export const ClipboardPage = GObject.registerClass(
                     );
                 }
 
-                const children = this as unknown as ClipboardPageChildren;
                 this.rowInstances.forEach((row) => {
-                    children._blockedAppsGroup.remove(row);
+                    this._blockedAppsGroup.remove(row);
                 });
                 this.rowInstances.clear();
 
@@ -123,8 +122,6 @@ export const ClipboardPage = GObject.registerClass(
         }
 
         private addBlockedAppRow(windowClass: string) {
-            const children = this as unknown as ClipboardPageChildren;
-
             const row = new BlockedAppRow();
             row.setWindowClass(windowClass);
 
@@ -140,7 +137,7 @@ export const ClipboardPage = GObject.registerClass(
                 this.handleInputChange(row);
             });
 
-            children._blockedAppsGroup.add_row(row);
+            this._blockedAppsGroup.add_row(row);
 
             if (!windowClass) {
                 row.focusInput();
@@ -156,14 +153,13 @@ export const ClipboardPage = GObject.registerClass(
         }
 
         private updateAddButtonState() {
-            const children = this as unknown as ClipboardPageChildren;
             const hasEmptyRows = Array.from(this.rowInstances).some((r) =>
                 r.isEmpty(),
             );
-            children._addWindowButton.set_sensitive(!hasEmptyRows);
+            this._addWindowButton.set_sensitive(!hasEmptyRows);
 
             const hasAnyRows = this.rowInstances.size > 0;
-            children._emptyPlaceholderRow.set_visible(!hasAnyRows);
+            this._emptyPlaceholderRow.set_visible(!hasAnyRows);
         }
 
         private handleSaveRequest(row: BlockedAppRowInstance) {
@@ -255,7 +251,6 @@ export const ClipboardPage = GObject.registerClass(
         }
 
         private removeBlockedAppRow(row: BlockedAppRowInstance) {
-            const children = this as unknown as ClipboardPageChildren;
             const windowClass = row.getWindowClass();
 
             if (windowClass) {
@@ -270,7 +265,7 @@ export const ClipboardPage = GObject.registerClass(
             }
 
             this.rowInstances.delete(row);
-            children._blockedAppsGroup.remove(row);
+            this._blockedAppsGroup.remove(row);
 
             this.updateAddButtonState();
         }

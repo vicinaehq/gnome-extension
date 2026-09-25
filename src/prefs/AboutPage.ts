@@ -5,12 +5,17 @@ import GObject from "gi://GObject";
 import Gtk from "gi://Gtk";
 import { Icons } from "../lib/icons.js";
 
-import type { AboutPageChildren, Credit } from "../types/prefs.js";
 import { getTemplate } from "../utils/getTemplate.js";
 import {
     type ExtensionMetadata,
     makeBugReportUrl,
 } from "../utils/issue-report.js";
+
+export interface Credit {
+    title: string;
+    subtitle: string;
+    github?: string; // Optional GitHub username
+}
 
 export const CREDITS: Credit[] = [
     {
@@ -103,42 +108,49 @@ export const AboutPage = GObject.registerClass(
         ],
     },
     class AboutPage extends Adw.PreferencesPage {
-        setMetadata(metadata: ExtensionMetadata) {
-            const children = this as unknown as AboutPageChildren;
+        declare _extensionIcon: Gtk.Image;
+        declare _extensionName: Gtk.Label;
+        declare _extensionVersion: Gtk.Label;
+        declare _linkWebsite: Gtk.Button;
+        declare _linkIssues: Gtk.Button;
+        declare _creditsRow: Adw.ExpanderRow;
+        declare _legalRow: Adw.ExpanderRow;
+        declare _extensionLicense: Gtk.TextView;
 
+        setMetadata(metadata: ExtensionMetadata) {
             // biome-ignore lint/style/noNonNullAssertion: path is always provided by GNOME Shell
             Icons.load(metadata.path!);
 
             const vicinaeIcon = Icons.get("vicinae") as Gio.Icon;
 
-            children._extensionIcon.set_from_gicon(vicinaeIcon);
+            this._extensionIcon.set_from_gicon(vicinaeIcon);
 
-            children._extensionName.set_text(metadata.name);
-            children._extensionVersion.set_text(
+            this._extensionName.set_text(metadata.name);
+            this._extensionVersion.set_text(
                 `v${metadata["version-name"] || metadata.version}${__VICINAE_ENV_SUFFIX__ ?? ""}`,
             );
 
             if (metadata.url) {
-                children._linkWebsite.connect("clicked", () => {
+                this._linkWebsite.connect("clicked", () => {
                     Gtk.show_uri(null, metadata.url || "", Gdk.CURRENT_TIME);
                 });
-                children._linkIssues.connect("clicked", async () => {
+                this._linkIssues.connect("clicked", async () => {
                     const issueUrl = await makeBugReportUrl(metadata);
                     Gtk.show_uri(null, issueUrl, Gdk.CURRENT_TIME);
                 });
             } else {
-                children._linkWebsite.visible = false;
-                children._linkIssues.visible = false;
+                this._linkWebsite.visible = false;
+                this._linkIssues.visible = false;
             }
 
-            children._extensionLicense.buffer.set_text(LICENSE, -1);
+            this._extensionLicense.buffer.set_text(LICENSE, -1);
 
             // biome-ignore lint/style/noNonNullAssertion: path is always provided by GNOME Shell
-            this.renderCredits(children, metadata.path!);
+            this.renderCredits(metadata.path!);
         }
 
-        private renderCredits(children: AboutPageChildren, path: string) {
-            const creditsExpander = children._creditsRow;
+        private renderCredits(path: string) {
+            const creditsExpander = this._creditsRow;
 
             CREDITS.forEach((credit) => {
                 const creditRow = new Adw.ActionRow({

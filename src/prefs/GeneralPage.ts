@@ -3,7 +3,7 @@ import Gdk from "gi://Gdk";
 import Gio from "gi://Gio";
 import GLib from "gi://GLib";
 import GObject from "gi://GObject";
-import type { GeneralPageChildren } from "../types/prefs.js";
+import type Gtk from "gi://Gtk";
 import { getTemplate } from "../utils/getTemplate.js";
 import { logger } from "../utils/logger.js";
 
@@ -28,30 +28,35 @@ export const GeneralPage = GObject.registerClass(
     class GeneralPage extends Adw.PreferencesPage {
         private settings!: Gio.Settings;
 
+        declare _showStatusIndicator: Adw.SwitchRow;
+        declare _loggingLevel: Adw.ComboRow;
+        declare _launcherAutoCloseFocusLoss: Adw.SwitchRow;
+        declare _launcherAppClass: Adw.EntryRow;
+        declare _journalctlRow: Adw.ActionRow;
+        declare _copyLogsCommandButton: Gtk.Button;
+
         bindSettings(settings: Gio.Settings) {
             this.settings = settings;
             logger.debug("Settings bound to GeneralPage");
 
-            const children = this as unknown as GeneralPageChildren;
-
-            this.bindShowStatusIndicator(settings, children);
-            this.bindLoggingLevel(settings, children);
-            this.bindLauncherAutoCloseFocusLoss(settings, children);
-            this.bindLauncherAppClass(settings, children);
-            this.bindCopyLogsCommand(children);
+            this.bindShowStatusIndicator(settings);
+            this.bindLoggingLevel(settings);
+            this.bindLauncherAutoCloseFocusLoss(settings);
+            this.bindLauncherAppClass(settings);
+            this.bindCopyLogsCommand();
         }
 
-        private bindCopyLogsCommand(children: GeneralPageChildren) {
-            children._copyLogsCommandButton.connect("clicked", () => {
+        private bindCopyLogsCommand() {
+            this._copyLogsCommandButton.connect("clicked", () => {
                 const display = Gdk.Display.get_default();
                 display?.get_clipboard()?.set(LOGS_COMMAND);
 
-                children._copyLogsCommandButton.set_icon_name(
+                this._copyLogsCommandButton.set_icon_name(
                     "object-select-symbolic",
                 );
 
                 GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1500, () => {
-                    children._copyLogsCommandButton.set_icon_name(
+                    this._copyLogsCommandButton.set_icon_name(
                         "edit-copy-symbolic",
                     );
                     return GLib.SOURCE_REMOVE;
@@ -60,24 +65,18 @@ export const GeneralPage = GObject.registerClass(
         }
 
         /** `show-status-indicator` ↔ status indicator switch. */
-        private bindShowStatusIndicator(
-            settings: Gio.Settings,
-            children: GeneralPageChildren,
-        ) {
+        private bindShowStatusIndicator(settings: Gio.Settings) {
             settings.bind(
                 "show-status-indicator",
-                children._showStatusIndicator,
+                this._showStatusIndicator,
                 "active",
                 Gio.SettingsBindFlags.DEFAULT,
             );
         }
 
         /** `logging-level` ↔ logging ComboRow (not a direct GSettings bind). */
-        private bindLoggingLevel(
-            settings: Gio.Settings,
-            children: GeneralPageChildren,
-        ) {
-            const row = children._loggingLevel;
+        private bindLoggingLevel(settings: Gio.Settings) {
+            const row = this._loggingLevel;
             const currentLevel = settings.get_string("logging-level");
             const currentIndex = LOGGING_LEVELS.indexOf(currentLevel);
 
@@ -98,26 +97,20 @@ export const GeneralPage = GObject.registerClass(
         }
 
         /** `launcher-auto-close-focus-loss` ↔ auto-close switch. */
-        private bindLauncherAutoCloseFocusLoss(
-            settings: Gio.Settings,
-            children: GeneralPageChildren,
-        ) {
+        private bindLauncherAutoCloseFocusLoss(settings: Gio.Settings) {
             settings.bind(
                 "launcher-auto-close-focus-loss",
-                children._launcherAutoCloseFocusLoss,
+                this._launcherAutoCloseFocusLoss,
                 "active",
                 Gio.SettingsBindFlags.DEFAULT,
             );
         }
 
         /** `launcher-app-class` ↔ launcher WM class entry. */
-        private bindLauncherAppClass(
-            settings: Gio.Settings,
-            children: GeneralPageChildren,
-        ) {
+        private bindLauncherAppClass(settings: Gio.Settings) {
             settings.bind(
                 "launcher-app-class",
-                children._launcherAppClass,
+                this._launcherAppClass,
                 "text",
                 Gio.SettingsBindFlags.DEFAULT,
             );

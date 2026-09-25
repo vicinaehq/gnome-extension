@@ -29,26 +29,26 @@ export class VicinaeWindowManager implements WindowManager {
     private static toWindowInfo(mw: Meta.Window): WindowInfo {
         const workspace = mw.get_workspace();
         const frame = mw.get_frame_rect();
+        const activeWorkspace = global.workspace_manager.get_active_workspace();
         return {
             id: mw.get_id(),
-            title: mw.get_title(),
+            title: mw.get_title() || "",
             wm_class: mw.get_wm_class() || "",
             wm_class_instance: mw.get_wm_class_instance() || "",
             pid: mw.get_pid(),
             maximized: isMaximized(mw) !== 0,
-            display: mw.get_display(),
             frame_type: mw.get_frame_type(),
             window_type: mw.get_window_type(),
             layer: mw.get_layer(),
             monitor: mw.get_monitor(),
-            role: mw.get_role(),
+            role: mw.get_role() || "",
             width: frame.width,
             height: frame.height,
             x: frame.x,
             y: frame.y,
-            in_current_workspace: mw.located_on_workspace?.(
-                global.workspace_manager.get_active_workspace?.(),
-            ),
+            in_current_workspace: activeWorkspace
+                ? mw.located_on_workspace(activeWorkspace)
+                : false,
             canclose: mw.can_close(),
             canmaximize: mw.can_maximize(),
             canminimize: mw.can_minimize(),
@@ -56,8 +56,9 @@ export class VicinaeWindowManager implements WindowManager {
             moveable: mw.allows_move(),
             resizeable: mw.allows_resize(),
             has_focus: mw.has_focus(),
+            focus: mw.has_focus(),
             workspace: workspace ? workspace.index() : -1,
-        } as unknown as WindowInfo;
+        };
     }
 
     list(): WindowInfo[] {

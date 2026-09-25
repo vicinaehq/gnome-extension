@@ -1,10 +1,5 @@
 import GLib from "gi://GLib";
-import type Meta from "gi://Meta";
 import { logger } from "../../utils/logger.js";
-
-declare const global: {
-    display: Meta.Display;
-};
 
 export class FocusTracker {
     private focusIdleId: number = 0;
